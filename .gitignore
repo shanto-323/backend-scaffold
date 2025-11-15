@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 *.pem
+vendor/
 
 # Go workspace file
 go.work
@@ -8,3 +9,4 @@ go.work.sum
 
 # env file
 .env
+.dockerignore

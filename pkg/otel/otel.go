@@ -3,10 +3,8 @@ package otel
 import (
 	"context"
 
-	"github.com/labstack/echo/v4"
 	"github.com/shanto-323/backend-scaffold/config"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -56,42 +54,9 @@ func CreateOtelService(ctx context.Context, config *config.Config) (*OtelService
 	return otelService, nil
 }
 
-func (os *OtelService) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		ctx := c.Request().Context()
-
-		// Start trace span
-		ctx, span := os.Tracer.Start(ctx, c.Request().Method+" "+c.Request().URL.Path,
-			trace.WithAttributes(
-				attribute.String("http.method", c.Request().Method),
-				attribute.String("http.url", c.Request().URL.String()),
-				attribute.String("http.scheme", c.Request().URL.Scheme),
-				attribute.String("http.target", c.Request().URL.Path),
-				attribute.String("http.host", c.Request().Host),
-			),
-		)
-		defer span.End()
-
-		// Execute handler
-		err := next(c)
-
-		// Set response status
-		span.SetAttributes(
-			attribute.Int("http.status_code", c.Response().Status),
-		)
-
-		if err != nil {
-			span.RecordError(err)
-		}
-
-		return err
-	}
-}
-
 func (os *OtelService) Shutdown(ctx context.Context) error {
 	if err := os.tracerProvider.ForceFlush(ctx); err != nil {
 		return err
 	}
 	return os.tracerProvider.Shutdown(ctx)
 }
-

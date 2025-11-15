@@ -137,10 +137,9 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 		return nil, fmt.Errorf("config and logger must not be nil")
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: config.Redis.Address,
-		DB:   0,
-	})
+	opt, _ := redis.ParseURL(config.Redis.Address)
+
+	redisClient := redis.NewClient(opt)
 
 	// Validate connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -180,7 +179,7 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 		redisClient.AddHook(multiHook)
 	}
 
-	logger.Info().Msg("Redis cache initialized successfully")
+	logger.Info().Msg("redis service initialized successfully")
 
 	return &cache{
 		Logger: logger,
@@ -198,4 +197,3 @@ func (c *cache) Close() error {
 	c.Logger.Info().Msg("Redis connection closed")
 	return nil
 }
-

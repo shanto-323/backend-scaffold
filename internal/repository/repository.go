@@ -19,6 +19,7 @@ type Repository struct {
 }
 
 func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelService) (*Repository, error) {
+
 	db, err := postgres.New(config, logger, otelService)
 	if err != nil {
 		return nil, err
@@ -26,7 +27,7 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 
 	cache, err := cache.New(config, logger, otelService)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, err
 	}
 
@@ -34,6 +35,8 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 		config:         config,
 		DatabaseDriver: db,
 		CacheProvider:  cache,
+		logger:         logger,
+		otelService:    otelService,
 	}, nil
 }
 

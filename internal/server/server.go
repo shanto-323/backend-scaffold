@@ -25,21 +25,13 @@ type Server struct {
 func NewServer(logger *zerolog.Logger, config *config.Config) (*Server, error) {
 	otelService, err := otel.CreateOtelService(context.Background(), config)
 	if err != nil {
-		logger.Error().
-			Err(err).
-			Msg("error starting OTELService")
+		return nil, err
 	}
-	logger.Info().
-		Msg("OTELService running")
 
 	repository, err := repository.New(config, logger, otelService)
 	if err != nil {
-		logger.Error().
-			Err(err).
-			Msg("Error starting Repository")
+		return nil, err
 	}
-	logger.Info().
-		Msg("Repository running")
 
 	services := service.New()
 

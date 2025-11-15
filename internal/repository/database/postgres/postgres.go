@@ -96,6 +96,8 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 		return nil, fmt.Errorf("failed to create pgx pool: %w", err)
 	}
 
+	logger.Info().Msg("postgres service initialized successfully")
+
 	return &DB{
 		pool:   pool,
 		logger: logger,
