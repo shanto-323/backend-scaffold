@@ -29,10 +29,28 @@ services:
     container_name: tempo
     ports:
       - 3200:3200
+      - 4318:4318
     volumes:
       - tracer-data:/var/tempo
+      - ./tempo.yaml:/etc/tempo.yaml
+    command: -config.file=/etc/tempo.yaml
     networks:
       - net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=local
+      - GF_SECURITY_ADMIN_PASSWORD=local
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - net
+    depends_on:
+      - tempo
 
   project:
     build:
@@ -41,6 +59,7 @@ services:
     depends_on: 
       - postgres
       - redis
+      - tempo
     env_file:
       - ../.env
     ports:
@@ -53,6 +72,7 @@ volumes:
   data:
   cache-data:
   tracer-data:
+  grafana-data:
 
 networks:
   net:

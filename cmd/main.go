@@ -12,6 +12,7 @@ import (
 	"github.com/shanto-323/backend-scaffold/internal/server"
 	"github.com/shanto-323/backend-scaffold/internal/server/handler"
 	"github.com/shanto-323/backend-scaffold/internal/server/router"
+	"github.com/shanto-323/backend-scaffold/internal/service"
 )
 
 const CleaningTime time.Duration = 1 * time.Second
@@ -29,8 +30,10 @@ func main() {
 		log.Fatal("Error creating new server %w", err)
 	}
 
-	h := handler.NewHandlers(s)
-
+	sr := service.New(s)
+	// Handler setup
+	h := handler.NewHandlers(s, sr)
+	// Router setup
 	r := router.NewRouter(s, h)
 
 	stopChan := make(chan os.Signal, 1)
@@ -50,7 +53,7 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), CleaningTime)
 		defer cancel()
 
-		if err := s.Stop(); err != nil {
+		if err := s.Stop(ctx); err != nil {
 			errChan <- err
 		}
 

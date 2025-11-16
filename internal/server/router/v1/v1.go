@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterV1Routes(r *echo.Group, h *handler.Handlers, m *middleware.Middlewares) {
-	auth := r.Group("/auth")
+	student := r.Group("/student")
 
-	auth.POST("/signup", nil)
+	student.POST("", h.StudentHandler.Create)
 }

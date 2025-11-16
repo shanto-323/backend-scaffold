@@ -15,7 +15,7 @@ import (
 	"github.com/shanto-323/backend-scaffold/config"
 	"github.com/shanto-323/backend-scaffold/internal/repository/database"
 	loggerConfig "github.com/shanto-323/backend-scaffold/pkg/logger"
-	"github.com/shanto-323/backend-scaffold/pkg/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type DB struct {
@@ -49,7 +49,7 @@ func (mt *multiTracer) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data p
 	}
 }
 
-func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelService) (database.Driver, error) {
+func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (database.Driver, error) {
 	hostPort := net.JoinHostPort(config.Database.Host, strconv.Itoa(config.Database.Port))
 
 	dsn := fmt.Sprintf(
@@ -66,7 +66,7 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 		return nil, fmt.Errorf("failed to parse pgx pool config: %w", err)
 	}
 
-	if otelService != nil && otelService.Tracer != nil {
+	if tracer != nil {
 		pgxPoolConfig.ConnConfig.Tracer = otelpgx.NewTracer()
 	}
 

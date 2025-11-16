@@ -21,7 +21,8 @@ func (t *Tracer) EnhanceTracing() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
 
-			ctx, span := t.s.OTELService.Tracer.Start(ctx, c.Path())
+			ctx, span := t.s.TraceProvider.Tracer.Start(ctx, c.Path())
+			c.SetRequest(c.Request().WithContext(ctx))
 
 			attrs := []attribute.KeyValue{}
 			request_id := GetRequestID(c)
@@ -50,6 +51,10 @@ func (t *Tracer) EnhanceTracing() echo.MiddlewareFunc {
 
 			span.SetAttributes(attribute.Int("http.status_code", c.Response().Status))
 			span.End()
+
+			if err := t.s.TraceProvider.ForceFlush(ctx); err != nil {
+				t.s.Logger.Error().Err(err).Msg("Failed to flush span")
+			}
 
 			return err
 		}

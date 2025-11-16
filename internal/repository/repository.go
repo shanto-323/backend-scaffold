@@ -6,37 +6,38 @@ import (
 	"github.com/shanto-323/backend-scaffold/internal/repository/cache"
 	"github.com/shanto-323/backend-scaffold/internal/repository/database"
 	"github.com/shanto-323/backend-scaffold/internal/repository/database/postgres"
-	"github.com/shanto-323/backend-scaffold/pkg/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Repository struct {
-	config      *config.Config
-	logger      *zerolog.Logger
-	otelService *otel.OtelService
+	config *config.Config
+	logger *zerolog.Logger
+	tracer trace.Tracer
 
 	DatabaseDriver database.Driver
 	CacheProvider  cache.Provider
 }
 
-func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelService) (*Repository, error) {
+func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (*Repository, error) {
 
-	db, err := postgres.New(config, logger, otelService)
+	db, err := postgres.New(config, logger, tracer)
 	if err != nil {
 		return nil, err
 	}
 
-	cache, err := cache.New(config, logger, otelService)
+	cache, err := cache.New(config, logger, tracer)
 	if err != nil {
 		_ = db.Close()
 		return nil, err
 	}
 
 	return &Repository{
-		config:         config,
+		config: config,
+		logger: logger,
+		tracer: tracer,
+
 		DatabaseDriver: db,
 		CacheProvider:  cache,
-		logger:         logger,
-		otelService:    otelService,
 	}, nil
 }
 

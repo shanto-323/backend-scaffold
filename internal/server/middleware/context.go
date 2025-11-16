@@ -36,8 +36,6 @@ func (ce *ContextEnhancer) EnhanceContext() echo.MiddlewareFunc {
 				Str("ip", c.RealIP()).
 				Logger()
 
-
-
 			if userID := ce.extractUserID(c); userID != "" {
 				contextLogger = contextLogger.With().Str("user_id", userID).Logger()
 			}

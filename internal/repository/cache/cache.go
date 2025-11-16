@@ -10,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/shanto-323/backend-scaffold/config"
-	"github.com/shanto-323/backend-scaffold/pkg/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -132,7 +131,7 @@ func (h *redisHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.Pr
 }
 
 // New creates and returns a new Redis cache provider with hooks
-func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelService) (Provider, error) {
+func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (Provider, error) {
 	if config == nil || logger == nil {
 		return nil, fmt.Errorf("config and logger must not be nil")
 	}
@@ -154,10 +153,6 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 	var hooks []redis.Hook
 
 	// Always add the main redis hook with logger
-	var tracer trace.Tracer
-	if otelService != nil && otelService.Tracer != nil {
-		tracer = otelService.Tracer
-	}
 
 	mainHook := &redisHook{
 		logger: logger,
@@ -165,11 +160,6 @@ func New(config *config.Config, logger *zerolog.Logger, otelService *otel.OtelSe
 	}
 	hooks = append(hooks, mainHook)
 
-	// In local environment, add additional tracing if needed
-	if config.Primary.Env == "local" && otelService != nil && otelService.Tracer != nil {
-		// You can add more hooks here if needed
-		// For example: a detailed logging hook, metrics hook, etc.
-	}
 
 	// Register hooks
 	if len(hooks) == 1 {

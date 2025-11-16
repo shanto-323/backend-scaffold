@@ -9,38 +9,35 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/shanto-323/backend-scaffold/config"
 	"github.com/shanto-323/backend-scaffold/internal/repository"
-	"github.com/shanto-323/backend-scaffold/internal/service"
-	"github.com/shanto-323/backend-scaffold/pkg/otel"
+	"github.com/shanto-323/backend-scaffold/pkg/tracer"
 )
 
 type Server struct {
-	Config      *config.Config
-	Logger      *zerolog.Logger
-	Repository  *repository.Repository
-	Services    *service.Services
-	OTELService *otel.OtelService
-	httpServer  *http.Server
+	Config        *config.Config
+	Logger        *zerolog.Logger
+	Repository    *repository.Repository
+	TraceProvider *tracer.TraceProvider
+	httpServer    *http.Server
 }
 
 func NewServer(logger *zerolog.Logger, config *config.Config) (*Server, error) {
-	otelService, err := otel.CreateOtelService(context.Background(), config)
+	logger.Info().Msg(config.Monitor.OTEL.TempoEndpoint)
+	tp, err := tracer.New(context.Background(), config)
 	if err != nil {
 		return nil, err
 	}
 
-	repository, err := repository.New(config, logger, otelService)
+	repository, err := repository.New(config, logger, tp.Tracer)
 	if err != nil {
 		return nil, err
 	}
 
-	services := service.New()
 
 	return &Server{
-		Config:      config,
-		Logger:      logger,
-		Repository:  repository,
-		Services:    services,
-		OTELService: otelService,
+		Config:        config,
+		Logger:        logger,
+		Repository:    repository,
+		TraceProvider: tp,
 	}, nil
 }
 
@@ -66,6 +63,9 @@ func (s *Server) Run() error {
 	return s.httpServer.ListenAndServe()
 }
 
-func (s *Server) Stop() error {
+func (s *Server) Stop(ctx context.Context) error {
+	if err := s.TraceProvider.Shutdown(ctx); err != nil {
+		return err
+	}
 	return nil
 }
