@@ -37,6 +37,31 @@ services:
     networks:
       - net
 
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - 3100:3100
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    tmpfs:
+      - /tmp/loki  
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - net
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - logs:/var/lib/logs:ro
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+    networks:
+      - net
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -56,10 +81,13 @@ services:
     build:
       context: ..
       dockerfile: ./scripts/Dockerfile
+    volumes:
+      - logs:/var/lib/logs
     depends_on: 
       - postgres
       - redis
       - tempo
+      - loki
     env_file:
       - ../.env
     ports:
@@ -69,6 +97,8 @@ services:
 
 
 volumes:
+  logs:
+  loki:
   data:
   cache-data:
   tracer-data:

@@ -6,7 +6,6 @@ import (
 	"github.com/shanto-323/backend-scaffold/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
@@ -39,11 +38,8 @@ func New(ctx context.Context, config *config.Config) (*TraceProvider, error) {
 		return nil, err
 	}
 
-	consoleExp, _ := stdouttrace.New()
-
 	tp := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exp),
-		tracesdk.WithSyncer(consoleExp),
 		tracesdk.WithResource(res),
 	)
 

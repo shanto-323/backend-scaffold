@@ -7,22 +7,25 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/rs/zerolog"
 	"github.com/shanto-323/backend-scaffold/config"
 	"github.com/shanto-323/backend-scaffold/internal/server"
 	"github.com/shanto-323/backend-scaffold/internal/server/handler"
 	"github.com/shanto-323/backend-scaffold/internal/server/router"
 	"github.com/shanto-323/backend-scaffold/internal/service"
+	logs "github.com/shanto-323/backend-scaffold/pkg/logger"
 )
 
 const CleaningTime time.Duration = 1 * time.Second
 
 func main() {
-	logger := zerolog.New(os.Stdout)
-
 	config, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal("Error loading config %w", err)
+	}
+
+	logger, err := logs.NewLoggerWithService(config.Monitor)
+	if err != nil {
+		log.Fatal("Error setup logger %w", err)
 	}
 
 	s, err := server.NewServer(&logger, config)

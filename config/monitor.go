@@ -83,6 +83,3 @@ func (c *Monitor) GetLogLevel() string {
 	return c.Logging.Level
 }
 
-func (c *Monitor) IsProduction() bool {
-	return c.Environment == "production"
-}

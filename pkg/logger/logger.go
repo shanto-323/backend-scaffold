@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func NewLoggerWithService(config *config.Monitor) zerolog.Logger {
+func NewLoggerWithService(config *config.Monitor) (zerolog.Logger, error) {
 	var logLevel zerolog.Level
 	level := config.GetLogLevel()
 
@@ -35,13 +35,13 @@ func NewLoggerWithService(config *config.Monitor) zerolog.Logger {
 	var writer io.Writer
 
 	if err := os.MkdirAll("/var/lib/logs", 0o755); err != nil {
-		panic(fmt.Sprintf("failed to create log directory: %v", err))
+		return zerolog.New(os.Stdout), err
 	}
 	file, err := os.OpenFile("/var/lib/logs/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		panic(fmt.Sprintf("failed to open log file: %v", err))
+		return zerolog.New(os.Stdout), err
 	}
-	writer = io.MultiWriter(file, os.Stdout)
+	writer = io.Writer(file)
 
 	logger := zerolog.New(writer).
 		Level(logLevel).
@@ -51,12 +51,9 @@ func NewLoggerWithService(config *config.Monitor) zerolog.Logger {
 		Str("environment", config.Environment).
 		Logger()
 
-	// Stack traces for errors in development
-	if !config.IsProduction() {
-		logger = logger.With().Stack().Logger()
-	}
+	logger = logger.With().Stack().Logger()
 
-	return logger
+	return logger, nil
 }
 
 // WithTraceContext adds New Relic transaction context to logger
@@ -124,4 +121,3 @@ func GetPgxTraceLogLevel(level zerolog.Level) int {
 		return 0 // tracelog.LogLevelNone
 	}
 }
-
