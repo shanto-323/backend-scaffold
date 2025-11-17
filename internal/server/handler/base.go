@@ -87,6 +87,8 @@ func handleRequest[Req validation.Validatable](
 		Str("path", path).
 		Str("route", route)
 
+
+
 	// Add file-specific fields to logger if it's a file handler
 	if fileHandler, ok := responseHandler.(FileResponseHandler); ok {
 		loggerBuilder = loggerBuilder.
@@ -95,8 +97,6 @@ func handleRequest[Req validation.Validatable](
 	}
 
 	logger := loggerBuilder.Logger()
-
-	logger.Info().Msg("handling request")
 
 	// Validation with observability
 	validationStart := time.Now()

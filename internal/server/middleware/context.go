@@ -44,7 +44,7 @@ func (ce *ContextEnhancer) EnhanceContext() echo.MiddlewareFunc {
 				contextLogger = contextLogger.With().Str("user_role", userRole).Logger()
 			}
 
-			c.Set(LoggerKey, contextLogger)
+			c.Set(LoggerKey, &contextLogger)
 
 			ctx := context.WithValue(c.Request().Context(), LoggerKey, &contextLogger)
 			c.SetRequest(c.Request().WithContext(ctx))

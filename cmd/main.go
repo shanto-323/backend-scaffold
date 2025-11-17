@@ -35,7 +35,7 @@ func main() {
 
 	sr := service.New(s)
 	// Handler setup
-	h := handler.NewHandlers(s, sr)
+	h := handler.New(s, sr)
 	// Router setup
 	r := router.NewRouter(s, h)
 

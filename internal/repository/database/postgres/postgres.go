@@ -104,12 +104,17 @@ func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (da
 	}, nil
 }
 
+func (db *DB) Ping(ctx context.Context) error {
+    return db.pool.Ping(ctx)
+}
+
+
+func (db *DB) IsInitialized(ctx context.Context) bool {
+	return db.pool != nil
+}
+
 func (db *DB) Close() error {
 	db.logger.Info().Msg("closing database connection pool")
 	db.pool.Close()
 	return nil
-}
-
-func (db *DB) IsInitialized(ctx context.Context) bool {
-	return db.pool != nil
 }
